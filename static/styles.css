@@ -1,0 +1,15 @@
+body {
+    background-color: #f8f9fa;
+}
+
+h1 {
+    font-weight: bold;
+}
+
+.result {
+    text-align: center;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
