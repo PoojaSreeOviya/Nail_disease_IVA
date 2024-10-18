@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import tensorflow as tf
 from flask import Flask, request, jsonify
@@ -21,21 +22,31 @@ def load_and_preprocess_image(image):
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+    
     file = request.files['file']
-    image = np.fromstring(file.read(), np.uint8)
-    image = cv2.imdecode(image, cv2.IMREAD_COLOR)
     
-    # Preprocess the image
-    processed_image = load_and_preprocess_image(image)
-    
-    # Predict the class
-    pred = model.predict(processed_image)
-    predicted_class = np.argmax(pred)
+    try:
+        # Read and decode the image
+        image = np.frombuffer(file.read(), np.uint8)
+        image = cv2.imdecode(image, cv2.IMREAD_COLOR)
 
-    # Return the predicted class as a response
-    return jsonify({
-        'predicted_class': class_names[predicted_class]
-    })
+        # Preprocess the image
+        processed_image = load_and_preprocess_image(image)
+
+        # Predict the class
+        pred = model.predict(processed_image)
+        predicted_class = np.argmax(pred)
+
+        # Return the predicted class as a response
+        return jsonify({
+            'predicted_class': class_names[predicted_class]
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))  # Default to port 5000 if PORT is not set
+    app.run(debug=True, host='0.0.0.0', port=port)
